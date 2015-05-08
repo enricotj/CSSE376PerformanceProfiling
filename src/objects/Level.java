@@ -53,6 +53,7 @@ public class Level {
 	private int mapWidth; // The map array width.
 	private int mapHeight; // The map array height.
 	private int[][] map; // The map array. (height, width)
+	private int[][] drawMap; // The image drawing memoization array.
 	private int tileSize; // The tileSize. Preferably 32.
 	private ArrayList<Rectangle2D.Double> barrierCollisionBoxes; // The
 																	// arraylist
@@ -199,19 +200,23 @@ public class Level {
 	 *            the pixel size of a tile. 32 is perferable.
 	 */
 	BufferedImage img;
+
 	public void populateMap(String fileName, int tileSize) {
 		try {
 			String parser = " ";
 			String currentLine = null;
 			String[] currentLineValues = null;
-//			FileReader fileInput = new FileReader(fileName);
-//			BufferedReader imageReader = new BufferedReader(new FileReader(fileInput));
+			// FileReader fileInput = new FileReader(fileName);
+			// BufferedReader imageReader = new BufferedReader(new
+			// FileReader(fileInput));
 			InputStream fileInput = getClass().getResourceAsStream(fileName);
-			BufferedReader imageReader = new BufferedReader(new InputStreamReader(fileInput));
+			BufferedReader imageReader = new BufferedReader(
+					new InputStreamReader(fileInput));
 			this.mapWidth = Integer.parseInt(imageReader.readLine());
 			this.mapHeight = Integer.parseInt(imageReader.readLine());
 
 			this.map = new int[this.mapHeight][this.mapWidth];
+			this.drawMap = new int[this.mapHeight][this.mapWidth];
 
 			for (int r = 0; r < this.map.length; r++) {
 				// Get line of numbers and spaces.
@@ -225,9 +230,11 @@ public class Level {
 					// Convert the String integers into integer values to be
 					// stored in level.
 					this.map[c][r] = Integer.parseInt(currentLineValues[c]);
+					this.drawMap[c][r] = -1;
 				}
 			}
-			img = new BufferedImage(this.mapWidth*this.tileSize,this.mapHeight*this.tileSize,BufferedImage.TYPE_INT_RGB);
+			img = new BufferedImage(this.mapWidth * this.tileSize,
+					this.mapHeight * this.tileSize, BufferedImage.TYPE_INT_RGB);
 			imageReader.close();
 			generateBarrierCollisionBoxes();
 			generateRegularCollisionBoxes();
@@ -329,7 +336,8 @@ public class Level {
 	 */
 	public void draw(Graphics2D g2) {
 		int currentPosition;
-		// cache the tile background in an image so tiles don't need to be drawn again and again redundantly.
+		// cache the tile background in an image so tiles don't need to be drawn
+		// again and again redundantly.
 		Graphics2D g = img.createGraphics();
 		for (int r = 0; r < this.map.length; r++) {
 			for (int c = 0; c < this.map[r].length; c++) {
@@ -357,9 +365,13 @@ public class Level {
 	 *            the Graphics2D object to draw on.
 	 */
 	public void drawTileImage(int tileValue, int row, int col, Graphics2D g2) {
-		// FIXME: reduce the number of calls to the code below. When does drawImage really need to be called?
-		BufferedImage image = this.images.get(tileValue);
-		g2.drawImage(image, row * this.tileSize, col * this.tileSize, null);
+		if (tileValue != this.drawMap[row][col]) {
+			// FIXME: reduce the number of calls to the code below. When does
+			// drawImage really need to be called?
+			BufferedImage image = this.images.get(tileValue);
+			g2.drawImage(image, row * this.tileSize, col * this.tileSize, null);
+			this.drawMap[row][col] = tileValue;
+		}
 	}
 
 	/**

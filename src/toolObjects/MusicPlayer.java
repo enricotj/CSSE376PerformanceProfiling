@@ -1,4 +1,5 @@
 package toolObjects;
+
 import java.util.HashMap;
 
 import javax.sound.sampled.AudioFormat;
@@ -9,29 +10,39 @@ import javax.sound.sampled.Clip;
 /**
  * A media player that plays specified music files.
  *
- * @author Mark Hays and his students.
- *         Created Feb 14, 2015.
+ * @author Mark Hays and his students. Created Feb 14, 2015.
  */
 public class MusicPlayer {
-	
+
 	private Clip clip;
-	
+
+	static HashMap<String, Clip> clips = new HashMap<String, Clip>();
+
 	/**
 	 * Constructs a Music Player.
 	 *
-	 * @param fileName the destination of the media file.
+	 * @param fileName
+	 *            the destination of the media file.
 	 */
 	public MusicPlayer(String fileName) {
 		// FIXME: reduce the number of calls to the code below
 		// Obtain a clip.
+		// Try to obtain existing clip first.
+		if (clips.containsKey(fileName)) {
+			this.clip = clips.get(fileName);
+			return;
+		}
 		try {
-			AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(getClass().getResource(fileName));
+			AudioInputStream audioInputStream = AudioSystem
+					.getAudioInputStream(getClass().getResource(fileName));
 			AudioFormat baseFormat = audioInputStream.getFormat();
-			AudioFormat decodeFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
+			AudioFormat decodeFormat = new AudioFormat(
+					AudioFormat.Encoding.PCM_SIGNED,
 					baseFormat.getSampleRate(), 16, baseFormat.getChannels(),
 					baseFormat.getChannels() * 2, baseFormat.getSampleRate(),
 					false);
-			AudioInputStream decodeAudioInputStream = AudioSystem.getAudioInputStream(decodeFormat, audioInputStream);
+			AudioInputStream decodeAudioInputStream = AudioSystem
+					.getAudioInputStream(decodeFormat, audioInputStream);
 			this.clip = AudioSystem.getClip();
 			this.clip.open(decodeAudioInputStream);
 			audioInputStream.close();
@@ -39,8 +50,9 @@ public class MusicPlayer {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		clips.put(fileName, clip);
 	}
-	
+
 	/**
 	 * Plays the MusicPlayer.
 	 *
@@ -53,9 +65,10 @@ public class MusicPlayer {
 		this.clip.setFramePosition(0);
 		this.clip.start();
 	}
-	
+
 	/**
-	 * Plays the MusicPlayer in a continuous loop. Ideal for level background music.
+	 * Plays the MusicPlayer in a continuous loop. Ideal for level background
+	 * music.
 	 *
 	 */
 	public void playLoop() {
@@ -73,7 +86,7 @@ public class MusicPlayer {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Stops the MusicPlayer.
 	 *
@@ -83,13 +96,13 @@ public class MusicPlayer {
 			this.clip.stop();
 		}
 	}
-	
+
 	/**
 	 * Stops and closes the MusicPlayer.
 	 *
 	 */
 	public void close() {
 		stop();
-		//this.clip.close();
+		// this.clip.close();
 	}
 }
